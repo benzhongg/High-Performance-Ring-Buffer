@@ -1,6 +1,8 @@
 #pragma once
 #include <array>
 #include <list>
+#include <iostream>
+#include <stdexcept>
 
 //A ring buffer is a datastructure that provides optimized read and write speeds with no additional memory allocation overhead
     //requirements are in the comments below for a high performance ring buffer
@@ -20,7 +22,6 @@ private:
     size_t m_size { 0 };
 
 protected:
-    
     //placeholder values for unused cells in m_buffer
     T default_value()
     {
@@ -37,6 +38,27 @@ protected:
         }
     }
 
+    bool isFull()
+    {
+        return (m_tail == m_head) && (size() == CAPACITY);    
+    }
+
+    bool isEmpty()
+    {
+        return size() == 0;
+    }
+
+    bool headBeforeTail()
+    {
+        return m_head < m_tail;
+    }
+
+    //repetitive function
+    bool tailBeforeHead()
+    {
+        return m_tail < m_head;
+    }
+
 public:
 
     // //default constructor
@@ -47,30 +69,44 @@ public:
 
     //insert single 
         //should we do pass by value or pass by reference and is it ever pass by pointer
-    void insert(T v)
+    bool insert(T v)
     { 
-        m_buffer[m_tail] = v;
-        m_tail = (m_tail + 1) % CAPACITY;
-        m_size++;
+        if (!isFull()) {
+            //check initiliaze time
+            m_buffer[m_tail] = v;
+            m_tail = (m_tail + 1) % CAPACITY;
+            
+            return true;
+        } else {
+            return false;
+        }
     }
     
     //insert multiple elements
-    void insert(std::initializer_list<T> list)
+    bool insertRange(std::initializer_list<T> list)
     {
-        if (list.size() > CAPACITY){
+        if (list.size() > (CAPACITY - size())){
             std::cout << "Memory overwritten, data loss, max # of elements you can put in without overwriting in the ring buffer is x\n";
-        } else {
-            for (auto item : list) {
-                insert(item);
-            }
+            return false;
         }
+
+        for (auto item : list) {
+            insert(item);
+        }
+
+        return true;
     }
 
     //get single
     const T get()
     {
+        if (isEmpty()){
+            return default_value();
+        }
+        
         T res = m_buffer[m_head];
         m_head = (m_head + 1) % CAPACITY;
+        
         return res;
     }
     
@@ -92,11 +128,15 @@ public:
         //element count
     const size_t size() const
     {
-        return m_size;
+        if(m_tail >= m_head){
+            return m_tail - m_head;
+        } else {
+            return CAPACITY - m_head - m_tail;
+        }
     }
     
-    //clear buffer (all)
-    void clear_buffer()
+    //clear buffer (all)  
+    void clearBuffer()
     {
         for(auto index : m_buffer){
             index = default_value();
@@ -109,15 +149,41 @@ public:
     //remove
     void remove(int index)
     {   
-        if (index <= CAPACITY && index <= m_size){
-            m_buffer[index] = default_value();
+        //bounds check
+        if (index >= CAPACITY){
+            std::cout << "out of range" << std::endl;
+        }
+        
+        //check validity of index
+        if (headBeforeTail() && (index >= m_head && index < m_tail)){
+           
             m_size--;
-            reorganize_buffer_starting_at(index);
+
+            while(index < (m_tail - 1)){
+                m_buffer[index] = m_buffer[index + 1];
+                index++;
+            }
+
+            m_tail = index;
+
+        } else if (tailBeforeHead() && (index >= m_head || index < m_tail)){
+            
+            m_size--;
+
+            while(index < (m_tail - 1)){
+                m_buffer[index] = m_buffer[(index + 1) % CAPACITY];
+                index = (index + 1) % CAPACITY;
+            }
+
+            m_tail = index;
+
+        } else {
+            //User enters index = m_tail
+            std::cout << "address alread y empty" << std::endl;
         }
     }
     
-    //return CAPACITY
-        //size of memory
+    //get capacity of ring buffer
     size_t capacity()
     {
         return CAPACITY;
