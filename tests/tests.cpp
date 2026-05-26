@@ -1,13 +1,18 @@
 #include "hpringbuffer.h"
 #include <gtest/gtest.h>
 
-TEST(Insert, InsertItemCountMatchesSizeMethod){
+TEST(SizeTest1, SizeMethodOnInitializedClass){
+    HighPerformanceRingBuffer<int, 5> highperformance1;
+    ASSERT_EQ(highperformance1.size(), 0);
+}
+
+TEST(InsertTest, InsertItemCountMatchesSizeMethod){
     HighPerformanceRingBuffer<int, 5> highperformance1;
     highperformance1.insert(1);
     ASSERT_EQ(highperformance1.size(), 1);
 }
 
-TEST(SizeRemoveTest, RemovingItemsMatchesSizeMethod){
+TEST(RemoveTest, RemovingItemsMatchesSizeMethod){
     HighPerformanceRingBuffer<int, 5> highperformance1;
     
     highperformance1.insert(1);

@@ -60,8 +60,7 @@ public:
     //insert single 
     bool insert(T v)
     { 
-        //should insert condition on isFull or this below
-        if (m_tail != m_head) {
+        if (m_tail != m_head || !isFull()) {
             m_buffer[m_tail] = v;
             m_tail = (m_tail + 1) % CAPACITY;
             m_size++;
@@ -90,10 +89,12 @@ public:
     const T get()
     {
         if (isEmpty()){
+            std::cout << "empty returning default value: \n";
             return default_value();
         }
         
         T res = m_buffer[m_head];
+        m_size--;
         m_head = (m_head + 1) % CAPACITY;
         
         return res;
@@ -117,24 +118,19 @@ public:
         //element count
     const size_t size() const
     {
-        if(m_tail >= m_head){
-            return m_tail - m_head;
-        } else {
-            return CAPACITY - m_head - m_tail;
-        }
-
-        // //check 3 cases
-        // //H before T
+        return m_size;
+        // // //check 3 cases
+        // // //H before T
         // if (headBeforeTail()){
-
+        //     return m_tail - m_head;
         // }
         
-        // //T before H
+        // // //T before H
         // if (tailBeforeHead()){
-        
+        //     return CAPACITY - m_head - m_tail;
         // }
         
-        // //H == T
+        // // //H == T
         // if (m_head == m_tail){
         //     return m_size;
         // }
