@@ -28,16 +28,6 @@ protected:
         return T{};
     }
 
-    //cleans up m_buffer after removal calls
-    void reorganize_buffer_starting_at(int index)
-    {
-        int walk_ptr = index + 1;
-        int write_ptr = index;
-        while (write_ptr < (m_size || CAPACITY)){
-            m_buffer[write_ptr++] = m_buffer[walk_ptr++];
-        }
-    }
-
     bool isFull()
     {
         return (m_tail == m_head) && (size() == CAPACITY);    
@@ -133,14 +123,27 @@ public:
         } else {
             return CAPACITY - m_head - m_tail;
         }
+
+        // //check 3 cases
+        // //H before T
+        // if (headBeforeTail()){
+
+        // }
+        
+        // //T before H
+        // if (tailBeforeHead()){
+        
+        // }
+        
+        // //H == T
+        // if (m_head == m_tail){
+        //     return m_size;
+        // }
     }
     
     //clear buffer (all)  
     void clearBuffer()
     {
-        for(auto index : m_buffer){
-            index = default_value();
-        }
         m_size = 0;
         m_head = 0;
         m_tail = 0;
