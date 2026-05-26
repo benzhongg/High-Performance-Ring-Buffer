@@ -30,7 +30,7 @@ protected:
 
     bool isFull()
     {
-        return (m_tail == m_head) && (size() == CAPACITY);    
+        return size() == CAPACITY;    
     }
 
     bool isEmpty()
@@ -43,7 +43,7 @@ protected:
         return m_head < m_tail;
     }
 
-    //repetitive function
+    //repetitive function but makes code clear so this might stay
     bool tailBeforeHead()
     {
         return m_tail < m_head;
@@ -58,14 +58,13 @@ public:
     // ~HighPerformanceRingBuffer();
 
     //insert single 
-        //should we do pass by value or pass by reference and is it ever pass by pointer
     bool insert(T v)
     { 
-        if (!isFull()) {
-            //check initiliaze time
+        //should insert condition on isFull or this below
+        if (m_tail != m_head) {
             m_buffer[m_tail] = v;
             m_tail = (m_tail + 1) % CAPACITY;
-            
+            m_size++;
             return true;
         } else {
             return false;
