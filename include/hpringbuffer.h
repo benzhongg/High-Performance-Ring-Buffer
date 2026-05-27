@@ -1,6 +1,8 @@
 #pragma once
 #include <array>
 #include <list>
+#include <iostream>
+#include <stdexcept>
 
 //A ring buffer is a datastructure that provides optimized read and write speeds with no additional memory allocation overhead
     //requirements are in the comments below for a high performance ring buffer
@@ -17,24 +19,33 @@ private:
     //head is next read
     int m_head { 0 };
 
-    size_t m_size { 0 };
 
 protected:
-    
     //placeholder values for unused cells in m_buffer
     T default_value()
     {
         return T{};
     }
 
-    //cleans up m_buffer after removal calls
-    void reorganize_buffer_starting_at(int index)
+    bool isFull()
     {
-        int walk_ptr = index + 1;
-        int write_ptr = index;
-        while (write_ptr < (m_size || CAPACITY)){
-            m_buffer[write_ptr++] = m_buffer[walk_ptr++];
-        }
+        return size() + 1 == CAPACITY;    
+    }
+
+    bool isEmpty()
+    {
+        return size() == 0;
+    }
+
+    bool headBeforeTail() const
+    {
+        return m_head < m_tail;
+    }
+
+    //repetitive function but makes code clear so this might stay
+    bool tailBeforeHead() const
+    {
+        return m_tail < m_head;
     }
 
 public:
@@ -46,78 +57,119 @@ public:
     // ~HighPerformanceRingBuffer();
 
     //insert single 
-        //should we do pass by value or pass by reference and is it ever pass by pointer
-    void insert(T v)
+    bool insert(T v)
     { 
-        m_buffer[m_tail] = v;
-        m_tail = (m_tail + 1) % CAPACITY;
-        m_size++;
+        if (!isFull()) {
+            m_buffer[m_tail] = v;
+            m_tail = (m_tail + 1) % CAPACITY;
+            return true;
+        } else {
+            return false;
+        }
     }
     
     //insert multiple elements
-    void insert(std::initializer_list<T> list)
+    bool multiInsert(std::initializer_list<T> list)
     {
-        if (list.size() > CAPACITY){
-            std::cout << "Memory overwritten, data loss, max # of elements you can put in without overwriting in the ring buffer is x\n";
-        } else {
-            for (auto item : list) {
-                insert(item);
-            }
+        if (list.size() > (CAPACITY - size())){
+            return false;
         }
+
+        for (auto item : list) {
+            insert(item);
+        }
+
+        return true;
     }
 
     //get single
     const T get()
     {
+        if (isEmpty()){
+            return default_value();
+        }
+        
         T res = m_buffer[m_head];
         m_head = (m_head + 1) % CAPACITY;
+        
         return res;
     }
     
     //get multiple elements
-    std::list<T> get(int element_read_count)
+    std::list<T> multiGet(int element_read_count)
     {
-        if (element_read_count > CAPACITY){
-            std::cout << "requested more elements than CAPACITY of the ring buffer\n";
+        if (element_read_count > size() || element_read_count > CAPACITY){
+            return {};
         } else {
             std::list<T> res;
-            for (int x = 0; x < m_size; x++){
+
+            auto currentSize = size();
+            for (auto x = 0; x < currentSize; x++){
                 res.push_back(get());
             }
             return res;
         }
     }
 
-    //size
-        //element count
-    const size_t size() const
+    //size - buffer element count
+    size_t size() const
     {
-        return m_size;
+        //H before T
+        if (headBeforeTail()){
+            return m_tail - m_head;
+        }
+        
+        //T before H
+        if (tailBeforeHead()){
+            return CAPACITY - m_head - m_tail;
+        }
+        
+        //H == T on empty / full
+        return 0;
     }
     
-    //clear buffer (all)
-    void clear_buffer()
+    //clear buffer (all)  
+    void clearBuffer()
     {
-        for(auto index : m_buffer){
-            index = default_value();
-        }
-        m_size = 0;
         m_head = 0;
         m_tail = 0;
     }
     
     //remove
-    void remove(int index)
+    bool remove(int index)
     {   
-        if (index <= CAPACITY && index <= m_size){
-            m_buffer[index] = default_value();
-            m_size--;
-            reorganize_buffer_starting_at(index);
+        //bounds check
+        if (index >= CAPACITY){
+            return false;
         }
+        
+        m_buffer[index] = default_value();
+
+        //is this readable?
+        //buffer reorganization
+        if (headBeforeTail() && (index >= m_head && index < m_tail)){
+            //clean up buffer from the removed index
+            while(index < (m_tail - 1)){
+                m_buffer[index] = m_buffer[index + 1];
+                index++;
+            }
+        } else if (tailBeforeHead() && (index >= m_head || index < m_tail)){
+            //clean up buffer from the removed index
+            while(index < (m_tail - 1)){
+                m_buffer[index] = m_buffer[(index + 1) % CAPACITY];
+                index = (index + 1) % CAPACITY;
+            }
+        } else {
+            //valid index but invalid capacity
+            return false;
+        }
+ 
+        m_tail = index;
+
+        return true;
     }
     
-    //return CAPACITY
-        //size of memory
+    //get capacity of ring buffer
     size_t capacity()
     {
         return CAPACITY;
