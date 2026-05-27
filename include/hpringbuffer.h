@@ -19,7 +19,6 @@ private:
     //head is next read
     int m_head { 0 };
 
-    size_t m_size { 0 };
 
 protected:
     //placeholder values for unused cells in m_buffer
@@ -30,7 +29,7 @@ protected:
 
     bool isFull()
     {
-        return size() == CAPACITY;    
+        return size() + 1 == CAPACITY;    
     }
 
     bool isEmpty()
@@ -38,13 +37,13 @@ protected:
         return size() == 0;
     }
 
-    bool headBeforeTail()
+    bool headBeforeTail() const
     {
         return m_head < m_tail;
     }
 
     //repetitive function but makes code clear so this might stay
-    bool tailBeforeHead()
+    bool tailBeforeHead() const
     {
         return m_tail < m_head;
     }
@@ -60,10 +59,9 @@ public:
     //insert single 
     bool insert(T v)
     { 
-        if (m_tail != m_head || !isFull()) {
+        if (!isFull()) {
             m_buffer[m_tail] = v;
             m_tail = (m_tail + 1) % CAPACITY;
-            m_size++;
             return true;
         } else {
             return false;
@@ -71,10 +69,9 @@ public:
     }
     
     //insert multiple elements
-    bool insertRange(std::initializer_list<T> list)
+    bool multiInsert(std::initializer_list<T> list)
     {
         if (list.size() > (CAPACITY - size())){
-            std::cout << "Memory overwritten, data loss, max # of elements you can put in without overwriting in the ring buffer is x\n";
             return false;
         }
 
@@ -89,96 +86,87 @@ public:
     const T get()
     {
         if (isEmpty()){
-            std::cout << "empty returning default value: \n";
             return default_value();
         }
         
         T res = m_buffer[m_head];
-        m_size--;
         m_head = (m_head + 1) % CAPACITY;
         
         return res;
     }
     
     //get multiple elements
-    std::list<T> get(int element_read_count)
+    std::list<T> multiGet(int element_read_count)
     {
-        if (element_read_count > CAPACITY){
-            std::cout << "requested more elements than CAPACITY of the ring buffer\n";
+        if (element_read_count > size() || element_read_count > CAPACITY){
+            return {};
         } else {
             std::list<T> res;
-            for (int x = 0; x < m_size; x++){
+
+            auto currentSize = size();
+            for (auto x = 0; x < currentSize; x++){
                 res.push_back(get());
             }
             return res;
         }
     }
 
-    //size
-        //element count
-    const size_t size() const
+    //size - buffer element count
+    size_t size() const
     {
-        return m_size;
-        // // //check 3 cases
-        // // //H before T
-        // if (headBeforeTail()){
-        //     return m_tail - m_head;
-        // }
+        //H before T
+        if (headBeforeTail()){
+            return m_tail - m_head;
+        }
         
-        // // //T before H
-        // if (tailBeforeHead()){
-        //     return CAPACITY - m_head - m_tail;
-        // }
+        //T before H
+        if (tailBeforeHead()){
+            return CAPACITY - m_head - m_tail;
+        }
         
-        // // //H == T
-        // if (m_head == m_tail){
-        //     return m_size;
-        // }
+        //H == T on empty / full
+        return 0;
     }
     
     //clear buffer (all)  
     void clearBuffer()
     {
-        m_size = 0;
         m_head = 0;
         m_tail = 0;
     }
     
     //remove
-    void remove(int index)
+    bool remove(int index)
     {   
         //bounds check
         if (index >= CAPACITY){
-            std::cout << "out of range" << std::endl;
+            return false;
         }
         
-        //check validity of index
-        if (headBeforeTail() && (index >= m_head && index < m_tail)){
-           
-            m_size--;
+        m_buffer[index] = default_value();
 
+        //is this readable?
+        //buffer reorganization
+        if (headBeforeTail() && (index >= m_head && index < m_tail)){
+            //clean up buffer from the removed index
             while(index < (m_tail - 1)){
                 m_buffer[index] = m_buffer[index + 1];
                 index++;
             }
-
-            m_tail = index;
-
         } else if (tailBeforeHead() && (index >= m_head || index < m_tail)){
-            
-            m_size--;
-
+            //clean up buffer from the removed index
             while(index < (m_tail - 1)){
                 m_buffer[index] = m_buffer[(index + 1) % CAPACITY];
                 index = (index + 1) % CAPACITY;
             }
-
-            m_tail = index;
-
         } else {
-            //User enters index = m_tail
-            std::cout << "address alread y empty" << std::endl;
+            //valid index but invalid capacity
+            return false;
         }
+ 
+        m_tail = index;
+
+        return true;
     }
     
     //get capacity of ring buffer
