@@ -15,7 +15,6 @@ private:
     
     //tail is next read
     int m_tail { 0 };
-    
 
 protected:
     T default_value()
