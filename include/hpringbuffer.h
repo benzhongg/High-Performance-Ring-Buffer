@@ -36,17 +36,6 @@ protected:
         return size() == 0;
     }
 
-    bool headBeforeTail() const
-    {
-        return m_head < m_tail;
-    }
-
-    //repetitive function but makes code clear so this might stay
-    bool tailBeforeHead() const
-    {
-        return m_tail < m_head;
-    }
-
 public:
 
     // //default constructor
@@ -142,41 +131,7 @@ public:
         m_tail = 0;
     }
     
-    //remove
-    bool remove(int index)
-    {   
-        //bounds check
-        if (index >= CAPACITY){
-            return false;
-        }
-        
-        m_buffer[index] = default_value();
-
-        //is this readable?
-        //buffer reorganization
-        if (headBeforeTail() && (index >= m_head && index < m_tail)){
-            //clean up buffer from the removed index
-            while(index < (m_tail - 1)){
-                m_buffer[index] = m_buffer[index + 1];
-                index++;
-            }
-        } else if (tailBeforeHead() && (index >= m_head || index < m_tail)){
-            //clean up buffer from the removed index
-            while(index < (m_tail - 1)){
-                m_buffer[index] = m_buffer[(index + 1) % CAPACITY];
-                index = (index + 1) % CAPACITY;
-            }
-        } else {
-            //valid index but invalid capacity
-            return false;
-        }
- 
-        m_tail = index;
-
-        return true;
-    }
-    
-    //get capacity of ring buffer
+    //get max capacity of ring buffer
     size_t capacity()
     {
         return CAPACITY - 1;

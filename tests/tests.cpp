@@ -47,27 +47,8 @@ TEST(PushTest, FullBuffer)
     ASSERT_EQ(highperformance1.size(), 2);
 }
 
-TEST(RemoveTest, ValidIndexValidCapacity){
-    HighPerformanceRingBuffer<int, 5> highperformance1;
-    highperformance1.insert(1);
-    ASSERT_EQ(highperformance1.remove(0), true);
-    ASSERT_EQ(highperformance1.size(), 0);
-}
-
-TEST(RemoveTest, InvalidIndexValidCapacity){
-    HighPerformanceRingBuffer<int, 5> highperformance1;
-    highperformance1.insert(1);
-    ASSERT_EQ(highperformance1.remove(20), false);
-    
-}
-
-TEST(RemoveTest, InvalidIndexInvalidCapacity){
-    HighPerformanceRingBuffer<int, 5> highperformance1;
-    highperformance1.insert(1);
-    ASSERT_EQ(highperformance1.remove(3), false);
-}
-
-TEST(ClearBufferTest, BoolCheckSizeCheck){
+TEST(ClearBufferTest, BoolCheckSizeCheck)
+{
     HighPerformanceRingBuffer<int, 5> highperformance1;
     highperformance1.push(1);
     highperformance1.push(1);
@@ -112,7 +93,8 @@ TEST(PushRangeTest, EmptyBuffer)
     ASSERT_EQ(highperformance1.size(), 0);
 }
 
-TEST(PushRangeTest, NonEmptyBuffer){
+TEST(PushRangeTest, NonEmptyBuffer)
+{
     HighPerformanceRingBuffer<int, 5> highperformance1;
     highperformance1.push(100);
     highperformance1.pushRange({1, 2, 3});
@@ -121,13 +103,15 @@ TEST(PushRangeTest, NonEmptyBuffer){
     ASSERT_EQ(highperformance1.size(), 3);
 }
 
-TEST(PopRangeTest, EmptyBuffer){
+TEST(PopRangeTest, EmptyBuffer)
+{
     HighPerformanceRingBuffer<int, 5> highperformance1;
     std::list<int> resulting_list = highperformance1.popRange(2);
     ASSERT_TRUE(resulting_list.empty());
 }
 
-TEST(PopRangeTest, NonEmptyBufferValidGetAmount){
+TEST(PopRangeTest, NonEmptyBufferValidGetAmount)
+{
     HighPerformanceRingBuffer<int, 5> highperformance1;
     highperformance1.pushRange({1, 2, 3});
     std::list<int> resulting_list = highperformance1.popRange(3);
@@ -136,7 +120,8 @@ TEST(PopRangeTest, NonEmptyBufferValidGetAmount){
     ASSERT_EQ(highperformance1.size(), 0);
 }
 
-TEST(MultiGetTest, NonEmptyBufferInvalidGetAmount){
+TEST(MultiGetTest, NonEmptyBufferInvalidGetAmount)
+{
     HighPerformanceRingBuffer<int, 5> highperformance1;
     highperformance1.pushRange({1, 2, 3});
     std::list<int> resulting_list = highperformance1.popRange(4);
