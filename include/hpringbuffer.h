@@ -3,6 +3,9 @@
 #include <list>
 #include <iostream>
 #include <stdexcept>
+#include <atomic>
+#include <thread>
+
 
 template<typename T, size_t CAPACITY>
 class HighPerformanceRingBuffer
@@ -129,5 +132,3 @@ public:
         return CAPACITY - 1;
     }
 };
-
-//this comment will be rebase comment
