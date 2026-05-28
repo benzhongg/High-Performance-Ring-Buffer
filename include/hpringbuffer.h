@@ -5,16 +5,17 @@
 #include <stdexcept>
 
 template<typename T, size_t CAPACITY>
-class HighPerformanceRingBuffer {
+class HighPerformanceRingBuffer
+{
 private:
-    std::array<T, CAPACITY> m_buffer { };
+    std::array<T, CAPACITY> m_buffer { default_value() };
     
-    //tail is next write
+    //head is next write
+    int m_head { 0 };
+    
+    //tail is next read
     int m_tail { 0 };
     
-    //head is next read
-    int m_head { 0 };
-
 
 protected:
     T default_value()
@@ -42,9 +43,9 @@ public:
     { 
         if (!isFull())
         {
-            m_buffer[m_tail] = v;
+            m_buffer[m_head] = v;
 
-            m_tail = (m_tail + 1) % CAPACITY;
+            m_head = (m_head + 1) % CAPACITY;
             
             return true;
         } 
@@ -76,8 +77,8 @@ public:
             return default_value();
         }
         
-        T res = m_buffer[m_head];
-        m_head = (m_head + 1) % CAPACITY;
+        T res = m_buffer[m_tail];
+        m_tail = (m_tail + 1) % CAPACITY;
         
         return res;
     }
@@ -93,9 +94,12 @@ public:
             std::list<T> res;
 
             auto currentSize = size();
-            for (auto x = 0; x < currentSize; x++){
+            
+            for (auto x = 0; x < currentSize; x++)
+            {
                 res.push_back(pop());
             }
+            
             return res;
         }
     }
@@ -103,12 +107,12 @@ public:
     //returns element count
     size_t size() const
     {
-        if (m_head < m_tail){
-            return m_tail - m_head;
+        if (m_tail < m_head){
+            return m_head - m_tail;
         }
         
-        if (m_tail < m_head){
-            return CAPACITY - m_head - m_tail;
+        if (m_head < m_tail){
+            return CAPACITY - m_tail - m_head;
         }
         
         //H == T when empty, our FULL case won't occur -> see isFull()
@@ -117,8 +121,8 @@ public:
     
     void clearBuffer()
     {
-        m_head = 0;
         m_tail = 0;
+        m_head = 0;
     }
     
     size_t capacity()
