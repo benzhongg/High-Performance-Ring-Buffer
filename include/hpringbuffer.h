@@ -21,7 +21,6 @@ private:
 
 
 protected:
-    //placeholder values for unused cells in m_buffer
     T default_value()
     {
         return T{};
@@ -56,36 +55,44 @@ public:
     // //default destructor
     // ~HighPerformanceRingBuffer();
 
-    //insert single 
-    bool insert(T v)
+    //push an element   
+    bool push(T v)
     { 
-        if (!isFull()) {
+        if (!isFull())
+        {
             m_buffer[m_tail] = v;
+
             m_tail = (m_tail + 1) % CAPACITY;
+            
             return true;
-        } else {
+        } 
+        else 
+        {
             return false;
         }
     }
     
-    //insert multiple elements
-    bool multiInsert(std::initializer_list<T> list)
+    //push multiple elements
+    bool pushRange(std::initializer_list<T> list)
     {
-        if (list.size() > (CAPACITY - size())){
+        if (list.size() > (CAPACITY - size()))
+        {
             return false;
         }
 
-        for (auto item : list) {
-            insert(item);
+        for (auto item : list) 
+        {
+            push(item);
         }
 
         return true;
     }
 
-    //get single
-    const T get()
+    //read an element
+    const T pop()
     {
-        if (isEmpty()){
+        if (isEmpty())
+        {
             return default_value();
         }
         
@@ -95,40 +102,40 @@ public:
         return res;
     }
     
-    //get multiple elements
-    std::list<T> multiGet(int element_read_count)
+    //read multiple elements
+    std::list<T> popRange(int element_read_count)
     {
-        if (element_read_count > size() || element_read_count > CAPACITY){
+        if (element_read_count > size() || element_read_count > CAPACITY)
+        {
             return {};
-        } else {
+        } 
+        else 
+        {
             std::list<T> res;
 
             auto currentSize = size();
             for (auto x = 0; x < currentSize; x++){
-                res.push_back(get());
+                res.push_back(pop());
             }
             return res;
         }
     }
 
-    //size - buffer element count
+    //returns element count in ring buffer
     size_t size() const
     {
-        //H before T
-        if (headBeforeTail()){
+        if (m_head < m_tail){
             return m_tail - m_head;
         }
         
-        //T before H
-        if (tailBeforeHead()){
+        if (m_tail < m_head){
             return CAPACITY - m_head - m_tail;
         }
         
-        //H == T on empty / full
+        //H == T when empty, our FULL case won't occur -> see isFull()
         return 0;
     }
     
-    //clear buffer (all)  
     void clearBuffer()
     {
         m_head = 0;
@@ -172,6 +179,6 @@ public:
     //get capacity of ring buffer
     size_t capacity()
     {
-        return CAPACITY;
+        return CAPACITY - 1;
     }
 };

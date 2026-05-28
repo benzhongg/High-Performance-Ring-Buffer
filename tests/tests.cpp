@@ -1,43 +1,49 @@
 #include "hpringbuffer.h"
 #include <gtest/gtest.h>
 
-TEST(SizeTest, EmptyBuffer){
+TEST(SizeTest, EmptyBuffer)
+{
     HighPerformanceRingBuffer<int, 3> highperformance1;
     ASSERT_EQ(highperformance1.size(), 0);
 }
 
-TEST(SizeTest, NonEmptyBuffer){
+TEST(SizeTest, NonEmptyBuffer)
+{
     HighPerformanceRingBuffer<int, 3> highperformance1;
-    highperformance1.insert(1);
+    highperformance1.push(1);
     ASSERT_EQ(highperformance1.size(), 1);
 }
 
 
-TEST(SizeTest, FullBuffer){
+TEST(SizeTest, FullBuffer)
+{
     HighPerformanceRingBuffer<int, 3> highperformance1;
-    highperformance1.insert(1);
-    highperformance1.insert(1);
-    highperformance1.insert(1);
+    highperformance1.push(1);
+    highperformance1.push(1);
+    highperformance1.push(1);
     ASSERT_EQ(highperformance1.size(), 2);
 }
 
-TEST(InsertTest, EmptyBufferInsert){
+TEST(PushTest, EmptyBuffer)
+{
     HighPerformanceRingBuffer<int, 3> highperformance1;
-    ASSERT_EQ(highperformance1.insert(1), true);
+    ASSERT_EQ(highperformance1.push(1), true);
 }
 
-TEST(InsertTest, NonEmptyBufferInsert){
+TEST(PushTest, NonEmptyBuffer)
+{
     HighPerformanceRingBuffer<int, 3> highperformance1;
-    highperformance1.insert(1);
-    ASSERT_EQ(highperformance1.insert(2), true);
+    highperformance1.push(1);
+    ASSERT_EQ(highperformance1.push(2), true);
 }
 
-TEST(InsertTest, FullBufferInsert){
+TEST(PushTest, FullBuffer)
+{
     HighPerformanceRingBuffer<int, 3> highperformance1;
-    highperformance1.insert(1);
-    highperformance1.insert(1);
-    highperformance1.insert(1);
-    ASSERT_EQ(highperformance1.insert(2), false);
+    highperformance1.push(1);
+    highperformance1.push(1);
+    highperformance1.push(1);
+    ASSERT_EQ(highperformance1.push(2), false);
     ASSERT_EQ(highperformance1.size(), 2);
 }
 
@@ -63,64 +69,68 @@ TEST(RemoveTest, InvalidIndexInvalidCapacity){
 
 TEST(ClearBufferTest, BoolCheckSizeCheck){
     HighPerformanceRingBuffer<int, 5> highperformance1;
-    highperformance1.insert(1);
-    highperformance1.insert(1);
-    highperformance1.insert(1);
-    highperformance1.insert(1);
-    highperformance1.insert(1);
+    highperformance1.push(1);
+    highperformance1.push(1);
+    highperformance1.push(1);
+    highperformance1.push(1);
+    highperformance1.push(1);
     highperformance1.clearBuffer();
     ASSERT_EQ(highperformance1.size(), 0);
 }
 
-TEST(CapacityTest, ReturnValueMatchesDeclaration){
+TEST(CapacityTest, ReturnValueMatchesDeclaration)
+{
     HighPerformanceRingBuffer<int, 5> highperformance1;
-    ASSERT_EQ(highperformance1.capacity(), 5);
+    ASSERT_EQ(highperformance1.capacity(), 4);
 }
 
-TEST(GetTest, OnNonEmptyBuffer){
+TEST(PopTest, OnNonEmptyBuffer)
+{
     HighPerformanceRingBuffer<int, 5> highperformance1;
-    highperformance1.insert(1);
-    highperformance1.insert(2);
-    ASSERT_EQ(highperformance1.get(), 1);
+    highperformance1.push(1);
+    highperformance1.push(2);
+    ASSERT_EQ(highperformance1.pop(), 1);
     ASSERT_EQ(highperformance1.size(), 1);
-    ASSERT_EQ(highperformance1.get(), 2);
+    ASSERT_EQ(highperformance1.pop(), 2);
     ASSERT_EQ(highperformance1.size(), 0);
 }
 
-TEST(GetTest, EmptyBuffer){
+TEST(PopTest, EmptyBuffer)
+{
     HighPerformanceRingBuffer<int, 5> highperformance1;
-    ASSERT_EQ(highperformance1.get(), 0);
+    ASSERT_EQ(highperformance1.pop(), 0);
 }
 
-TEST(MultiInsertTest, EmptyBuffer){
+TEST(PushRangeTest, EmptyBuffer)
+{
     HighPerformanceRingBuffer<int, 5> highperformance1;
-    highperformance1.multiInsert({1, 2, 3});
+    highperformance1.pushRange({1, 2, 3});
     ASSERT_EQ(highperformance1.size(), 3);
-    ASSERT_EQ(highperformance1.get(), 1);
-    ASSERT_EQ(highperformance1.get(), 2);
-    ASSERT_EQ(highperformance1.get(), 3);
+    ASSERT_EQ(highperformance1.pop(), 1);
+    ASSERT_EQ(highperformance1.pop(), 2);
+    ASSERT_EQ(highperformance1.pop(), 3);
     ASSERT_EQ(highperformance1.size(), 0);
 }
 
-TEST(MultiInsertTest, NonEmptyBuffer){
+TEST(PushRangeTest, NonEmptyBuffer){
     HighPerformanceRingBuffer<int, 5> highperformance1;
-    highperformance1.insert(100);
-    highperformance1.multiInsert({1, 2, 3});
+    highperformance1.push(100);
+    highperformance1.pushRange({1, 2, 3});
     ASSERT_EQ(highperformance1.size(), 4);
-    ASSERT_EQ(highperformance1.get(), 100);
+    ASSERT_EQ(highperformance1.pop(), 100);
     ASSERT_EQ(highperformance1.size(), 3);
 }
 
-TEST(MultiGetTest, EmptyBuffer){
+TEST(PopRangeTest, EmptyBuffer){
     HighPerformanceRingBuffer<int, 5> highperformance1;
-    std::list<int> resulting_list = highperformance1.multiGet(2);
+    std::list<int> resulting_list = highperformance1.popRange(2);
     ASSERT_TRUE(resulting_list.empty());
 }
 
-TEST(MultiGetTest, NonEmptyBufferValidGetAmount){
+TEST(PopRangeTest, NonEmptyBufferValidGetAmount){
     HighPerformanceRingBuffer<int, 5> highperformance1;
-    highperformance1.multiInsert({1, 2, 3});
-    std::list<int> resulting_list = highperformance1.multiGet(3);
+    highperformance1.pushRange({1, 2, 3});
+    std::list<int> resulting_list = highperformance1.popRange(3);
     std::list<int> comparator_list = {1, 2, 3};
     ASSERT_EQ(resulting_list, comparator_list);
     ASSERT_EQ(highperformance1.size(), 0);
@@ -128,8 +138,8 @@ TEST(MultiGetTest, NonEmptyBufferValidGetAmount){
 
 TEST(MultiGetTest, NonEmptyBufferInvalidGetAmount){
     HighPerformanceRingBuffer<int, 5> highperformance1;
-    highperformance1.multiInsert({1, 2, 3});
-    std::list<int> resulting_list = highperformance1.multiGet(4);
+    highperformance1.pushRange({1, 2, 3});
+    std::list<int> resulting_list = highperformance1.popRange(4);
     std::list<int> comparator_list = {};
     ASSERT_EQ(resulting_list, comparator_list);
 }
