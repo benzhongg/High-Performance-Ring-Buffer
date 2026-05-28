@@ -4,13 +4,9 @@
 #include <iostream>
 #include <stdexcept>
 
-//A ring buffer is a datastructure that provides optimized read and write speeds with no additional memory allocation overhead
-    //requirements are in the comments below for a high performance ring buffer
-    //requirement targetted methods are public -> minimal guaranteed features of this class
 template<typename T, size_t CAPACITY>
 class HighPerformanceRingBuffer {
 private:
-    //compare benefits of which data struct to set for m_buffer
     std::array<T, CAPACITY> m_buffer { };
     
     //tail is next write
@@ -38,13 +34,10 @@ protected:
 
 public:
 
-    // //default constructor
-    // HighPerformanceRingBuffer();
+    HighPerformanceRingBuffer() = default;
     
-    // //default destructor
-    // ~HighPerformanceRingBuffer();
+    ~HighPerformanceRingBuffer() = default;
 
-    //push an element   
     bool push(T v)
     { 
         if (!isFull())
@@ -61,7 +54,6 @@ public:
         }
     }
     
-    //push multiple elements
     bool pushRange(std::initializer_list<T> list)
     {
         if (list.size() > (CAPACITY - size()))
@@ -77,7 +69,6 @@ public:
         return true;
     }
 
-    //read an element
     const T pop()
     {
         if (isEmpty())
@@ -91,7 +82,6 @@ public:
         return res;
     }
     
-    //read multiple elements
     std::list<T> popRange(int element_read_count)
     {
         if (element_read_count > size() || element_read_count > CAPACITY)
@@ -110,7 +100,7 @@ public:
         }
     }
 
-    //returns element count in ring buffer
+    //returns element count
     size_t size() const
     {
         if (m_head < m_tail){
@@ -131,7 +121,6 @@ public:
         m_tail = 0;
     }
     
-    //get max capacity of ring buffer
     size_t capacity()
     {
         return CAPACITY - 1;
