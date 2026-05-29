@@ -192,7 +192,7 @@ protected:
         }
         
         if (temp_head < temp_tail){
-            return CAPACITY - temp_tail - temp_head;
+            return CAPACITY - temp_tail + temp_head;
         }
         
         //H == T when empty, our FULL case won't occur -> see isFull()
