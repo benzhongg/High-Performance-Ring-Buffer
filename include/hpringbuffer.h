@@ -32,18 +32,19 @@ protected:
         return T{};
     }
 
+    
+    
+    public:
+    
     bool isFull()
     {
         return size() + 1 == CAPACITY;    
     }
-
+    
     bool isEmpty()
     {
         return size() == 0;
     }
-
-public:
-
     HighPerformanceRingBuffer() = default;
     
     ~HighPerformanceRingBuffer() = default;
@@ -52,24 +53,60 @@ public:
     //are either atomics affected here?
     //yes
     { 
+        
+        // if this is false then does the compiler/cpu decide to reorder
         if (!isFull())
         {
-            // acquire pertains to loads any further load can't be before this one or any behind
+            // acquire prevents any loads any further load can't be before this one or any behind
             // release pertains to storing past or any following 
             
             // consume a specific version of acquire
             // relaxed -> all memory reorderings are ok
-
-            // in this case we'll be choosing acq rel
-
-            // memory_order_acq_rel is for RMW events/operations
-            int tempHead = m_head.load(std::memory_order_acquire);
-
-            m_buffer[tempHead] = v;
-
-            tempHead = (tempHead + 1) % CAPACITY;
             
-            m_head.store(tempHead, std::memory_order_release);
+            // in this case we'll be choosing acq rel
+            
+            // memory_order_acq_rel is for RMW events/operations
+            
+            // seq_cst is the strongest memory ordering in c++
+            // program order among every individual thread
+            // single total order amongst all threads
+            
+            // atomic operations are all about synchronizing memory between threads
+            // avoid read/write and overwriting each other
+            
+            // acquire memory published by other threads making it available to us
+            // release updates and publishes changes made to all other threads
+            // prevents compiler from moving anything below
+            // 
+            
+            // when you use acquire and release there is no such thing as global ordering
+            // no total order of events
+            // but from the perspective of each thread, the ordering they follow is consistent to itself
+            // sequentially consistent
+            
+            // relaxed -> guarantees one variable is visible and guaranteed at every single time
+            // no ordering
+            // no other memory is synchronized
+            // no ordering with other relaxed operations
+            // used if your counting the ocurrences of some event in your program
+            
+            // x86 coherent cache model look into
+            
+            // volatile doesn't do synchronization
+            // related to IPC
+            
+            // I care about having the most up to date m_head so an acquire is necessary
+            
+            auto temp_head = m_head.load(std::memory_order_acquire);
+            auto temp_tail = m_tail.load(std::memory_order_acquire);
+            
+            m_buffer[temp_head] = v;
+            // computation
+            temp_head = (temp_head + 1) % CAPACITY;
+            
+            // I care about releasing the most up to date m_head so release is necessary
+            m_head.store(temp_head, std::memory_order_release);
+            
             return true;
         } 
         else 
@@ -78,68 +115,77 @@ public:
         }
     }
     
-    bool pushRange(std::initializer_list<T> list)
+    // bool pushRange(std::initializer_list<T> list)
+    // {
+    //     if (list.size() > (CAPACITY - size()))
+    //     {
+    //         return false;
+    //     }
+
+    //     for (auto item : list) 
+    //     {
+    //         push(item);
+    //     }
+
+    //     return true;
+    // }
+
+    bool pop(T& out_value)
     {
-        if (list.size() > (CAPACITY - size()))
+        auto temp_head = m_head.load(std::memory_order_acquire);
+        auto temp_tail = m_tail.load(std::memory_order_acquire);
+        
+        if (isEmpty())
         {
             return false;
         }
-
-        for (auto item : list) 
-        {
-            push(item);
-        }
+        
+        // see push() for same reasoning
+        // in an SPSC scenario consider using relaxed for less overhead than acquire
+        // acquire works but there's no need to sync with external states since SPSC
+        
+        out_value = m_buffer[temp_tail];
+        temp_tail = (temp_tail + 1) % CAPACITY;
+        
+        m_tail.store(temp_tail, std::memory_order_release);
 
         return true;
     }
-
-    const T pop()
-    {
-        if (isEmpty())
-        {
-            return default_value();
-        }
-        
-        int tempTail = m_tail.load(std::memory_order_acquire);
-        
-        T res = m_buffer[tempTail];
-        tempTail = (tempTail + 1) % CAPACITY;
-        
-        m_tail.store(tempTail, std::memory_order_release);
-
-        return res;
-    }
     
-    std::list<T> popRange(int element_read_count)
-    {
-        if (element_read_count > size() || element_read_count > CAPACITY)
-        {
-            return {};
-        } 
-        else 
-        {
-            std::list<T> res;
+    // std::list<T> popRange(int element_read_count)
+    // {
+    //     if (element_read_count > size() || element_read_count > CAPACITY)
+    //     {
+    //         return {};
+    //     } 
+    //     else 
+    //     {
+    //         std::list<T> res;
 
-            auto currentSize = size();
+    //         auto currentSize = size();
             
-            for (auto x = 0; x < currentSize; x++)
-            {
-                res.push_back(pop());
-            }
+    //         for (auto x = 0; x < currentSize; x++)
+    //         {
+    //             res.push_back(pop());
+    //         }
             
-            return res;
-        }
-    }
+    //         return res;
+    //     }
+    // }
 
     //returns element count
     size_t size() const
     {
 
         // there is a potential error here -> even though they are safeguarded individually, what
-        // happens when tail is head is read, head gets affected via a push(), and tail is loaded?
+        // happens when head and tail is read, head gets affected via a push(), and tail is loaded?
             // we'd be calculating a size that is no longer valid
-        int temp_head = m_head.load(std::memory_order_acquire);
-        int temp_tail = m_tail.load(std::memory_order_acquire);
+
+        // if they're both able to call size()
+        // acquire is needed to check the true m_head value
+
+        auto temp_head = m_head.load(std::memory_order_acquire);
+        auto temp_tail = m_tail.load(std::memory_order_acquire);
 
         if (temp_tail < temp_head){
             return temp_head - temp_tail;

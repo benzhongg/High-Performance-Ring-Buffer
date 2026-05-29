@@ -1,24 +1,58 @@
 #include <iostream>
 #include <hpringbuffer.h>
+#include <numeric>
 
-void say_hello_1(){
-    std::cout << "hello from thread 1";
-}
-void say_hello_2(){
-    std::cout << "hello from thread 2";
-}
-void say_hello_3(){
-    std::cout << "hello from thread 3";
-}
+int main()
+{
+    // HighPerformanceRingBuffer<int, 100> hp1;
+    // const int TEST_COUNT = 1;
+    // long long consumer_sum = 0;
 
-int main(){
-    std::thread t1(say_hello_1);
-    std::thread t2(say_hello_2);
-    std::thread t3(say_hello_3);
-    t1.join();
-    t2.join();
-    t3.join();
-    // join waits for the thread to finish its execution
-    // detach permits the thread to execute independently from the thread handle
-    // swap swaps two thread objects
+    // std::thread producer
+    // ([&hp1, &TEST_COUNT]()
+    // {
+    //     for (auto i = 1; i < TEST_COUNT; ++i)
+    //     {
+    //         while (!hp1.push(i))
+    //         {
+    //             std::this_thread::yield();                
+    //         }
+    //     }
+    // });
+
+
+
+    // std::thread consumer
+    // ([&hp1, &consumer_sum, &TEST_COUNT]()
+    // {
+    //     int count = 0;
+    //     while (count < TEST_COUNT)
+    //     {
+    //         if (!hp1.isEmpty())
+    //         {
+    //             consumer_sum += hp1.pop();
+    //             count++;
+    //         }
+    //         else
+    //         {
+    //             std::this_thread::yield();
+    //         }
+    //     }
+    // });
+    
+    // producer.join();
+    // consumer.join();
+
+    // long long expected_sum = (static_cast<long long>(TEST_COUNT) * (TEST_COUNT + 1)) / 2;
+    // std::cout << "Expected Sum: " << expected_sum << std::endl;
+    // std::cout << "Actual Sum:   " << consumer_sum << std::endl;
+
+    // if (consumer_sum == expected_sum) 
+    // {
+    //     std::cout << "SUCCESS: No data loss or corruption." << std::endl;
+    // } 
+    // else 
+    // {
+    //     std::cout << "FAILURE: Data race detected." << std::endl;
+    // }
 }
