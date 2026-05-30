@@ -143,10 +143,9 @@ TEST(ConcurrencyTest, PushElementCorrectOrder)
     {
         for (int x = 0; x < iterations; ++x)
         {
-            highperformance1.push(x);
-
             while (!highperformance1.push(x))
             {
+                // this reschedules the thread
                 std::this_thread::yield();
             }
         }

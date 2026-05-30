@@ -48,11 +48,10 @@ public:
     bool push(T v)
     { 
         
-        // if this is false then does the compiler/cpu decide to reorder
         if (!isFull())
         {
-            // acquire all memory published before this point by other threads -> making it available to us
-            // release all updates and publish changes made to all other threads
+            // acquires all memory published before this point by other threads -> making it available to us
+            // releases all updates and publishes all changes made to other threads
             
             // x86 coherent cache model
 
