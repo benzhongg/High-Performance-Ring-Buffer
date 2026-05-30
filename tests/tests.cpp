@@ -137,13 +137,14 @@ TEST(ConcurrencyTest, PushElementCorrectOrder)
     HighPerformanceRingBuffer<int, 100> highperformance1;
     int iterations = 1'000;
 
+    // Single Producer push values 0 to ITERATIONS
     std::thread producer 
     ([&highperformance1, &iterations] 
     {
         for (int x = 0; x < iterations; ++x)
         {
-            
             highperformance1.push(x);
+
             while (!highperformance1.push(x))
             {
                 std::this_thread::yield();
@@ -151,13 +152,14 @@ TEST(ConcurrencyTest, PushElementCorrectOrder)
         }
     });
 
-    
+    // consumer should read every x value from 0 to ITERATIONS as they come in from producer and pass EXPECT_EQ
     std::thread consumer
     ([&highperformance1, &iterations]
         {
             for (int x = 0; x < iterations; ++x)
             {
                 int pop_val { 0 };
+
                 while (!highperformance1.pop(pop_val))
                 {
                     std::this_thread::yield();
